@@ -80,17 +80,26 @@ app.use(express.static(path.join(__dirname, '../public'), {
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/moodio';
 
-mongoose
-  .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('✅ Connected to MongoDB successfully');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error.message);
-  });
+// Validate MongoDB URI format
+if (MONGODB_URI && !MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
+  console.warn('⚠️  Invalid MongoDB URI format. Expected "mongodb://" or "mongodb+srv://"');
+  console.warn('⚠️  Server will continue without database connection');
+} else if (MONGODB_URI) {
+  mongoose
+    .connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log('✅ Connected to MongoDB successfully');
+    })
+    .catch((error) => {
+      console.error('❌ MongoDB connection error:', error.message);
+      console.warn('⚠️  Server will continue without database connection');
+    });
+} else {
+  console.warn('⚠️  No MongoDB URI provided. Server will continue without database connection');
+}
 
 // Basic route for health check
 app.get('/api/health', (req, res) => {
@@ -172,10 +181,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - bind to 0.0.0.0 for Render deployment
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Moodio server is running on port ${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}/api`);
+  console.log(`📡 API available at http://0.0.0.0:${PORT}/api`);
+  console.log(`🌐 Server bound to 0.0.0.0 for external access`);
 });
 
 module.exports = app;
