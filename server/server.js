@@ -17,11 +17,11 @@ const PORT = process.env.PORT || 5000;
 app.use(compression());
 
 // Middleware
-// Middleware
 app.use(
   cors({
-    origin: ["https://moodio-10.onrender.com"], // <---- replace with YOUR frontend URL
+    origin: "https://moodio-10.onrender.com",
     methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );

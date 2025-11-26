@@ -1,0 +1,47 @@
+# Query: api.get
+# ContextLines: 1
+
+9 results - 7 files
+
+src\components\Chatbot.jsx:
+  120        const userId = user.id || user.userId || user.email;
+  121:       const response = await api.get(`/chat/history?userId=${userId}`);
+  122        
+
+src\components\MoodTracker.jsx:
+  78        const userId = user.id || user.userId || user.email;
+  79:       const response = await api.get(`/moods?userId=${userId}`);
+  80        if (response.data.success) {
+
+src\components\MusicRecommender.jsx:
+  146        console.log('[MusicRecommender] Fetching recommendations for userId:', userId, 'mood:', moodParam);
+  147:       const response = await api.get(`/music/recommend?userId=${userId}&mood=${moodParam}`);
+  148        console.log('[MusicRecommender] API response status:', response.status, 'data:', response.data);
+
+  214        const userId = user.id || user.userId || user.email;
+  215:       const response = await api.get(`/playlists?userId=${userId}`);
+  216        
+
+src\components\SmartSuggestions.jsx:
+  31        const userId = user.id || user.userId || user.email;
+  32:       const response = await api.get(`/moods?userId=${userId}`);
+  33        if (response.data.success) {
+
+src\context\AuthContext.jsx:
+  36      try {
+  37:       const response = await api.get(`/api/user/preferences?userId=${userId}`);
+  38        if (response.data.success) {
+
+src\pages\Journal.jsx:
+  47        const userId = user.id || user.userId || user.email;
+  48:       const response = await api.get(`/journal?userId=${userId}`);
+  49        if (response.data.success) {
+
+src\pages\Profile.jsx:
+   83          // Fetch latest preferences from backend
+   84:         const response = await api.get(`/api/user/preferences?userId=${userId}`);
+   85          
+
+  456          
+  457:         const response = await api.get(`/moods?userId=${userId}`);
+  458          if (response.data.success) {
