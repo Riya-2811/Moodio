@@ -13,58 +13,58 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Performance Optimization: Enable compression (reduces network load by ~70%)
-app.use(compression());
-
-// CORS Configuration - Must be before other middleware
+// CORS Configuration - MUST be first, before any other middleware
 const allowedOrigins = [
   "https://moodio-10.onrender.com",
   "http://localhost:3000",
   "http://localhost:3001"
 ];
 
-// Normalize origin (remove trailing slash)
-const normalizeOrigin = (origin) => {
-  if (!origin) return null;
-  return origin.replace(/\/$/, '');
-};
+// Manual CORS middleware - explicit and reliable
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Log for debugging
+  console.log(`[CORS] Request from origin: ${origin}, Method: ${req.method}, Path: ${req.path}`);
+  
+  // Check if origin is allowed
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log(`[CORS] Allowed origin: ${origin}`);
+  } else if (!origin) {
+    // For requests with no origin (same-origin, Postman, curl, etc.), don't set CORS headers
+    // or set to first allowed origin in production
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+    }
+  } else if (process.env.NODE_ENV !== 'production') {
+    // In development, allow all origins
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log(`[CORS] Development mode - allowed: ${origin}`);
+  } else {
+    console.warn(`[CORS] Blocked origin: ${origin}`);
+    // Still set headers but with first allowed origin (browser will block if doesn't match)
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+  
+  // Set CORS headers - IMPORTANT: credentials: true requires specific origin, not *
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests immediately
+  if (req.method === 'OPTIONS') {
+    console.log(`[CORS] Handling OPTIONS preflight for ${req.path}`);
+    return res.status(204).end();
+  }
+  
+  next();
+});
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, or same-origin requests)
-      if (!origin) {
-        return callback(null, true);
-      }
-      
-      const normalizedOrigin = normalizeOrigin(origin);
-      const normalizedAllowed = allowedOrigins.map(normalizeOrigin);
-      
-      // Check if origin (normalized) is in allowed list
-      if (normalizedAllowed.includes(normalizedOrigin)) {
-        callback(null, true);
-      } else {
-        // For development, allow all origins
-        if (process.env.NODE_ENV !== 'production') {
-          callback(null, true);
-        } else {
-          console.warn(`CORS blocked origin: ${origin}`);
-          callback(new Error('Not allowed by CORS'));
-        }
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
-    exposedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    maxAge: 86400, // 24 hours
-  })
-);
-
-// Handle preflight requests explicitly for all routes
-app.options('*', cors());
+// Performance Optimization: Enable compression (reduces network load by ~70%)
+app.use(compression());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
