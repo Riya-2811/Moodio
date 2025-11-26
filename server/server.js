@@ -17,9 +17,17 @@ const PORT = process.env.PORT || 5000;
 app.use(compression());
 
 // Middleware
-app.use(cors()); // Enable CORS for frontend-backend communication
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+// Middleware
+app.use(
+  cors({
+    origin: ["https://moodio-10.onrender.com"], // <---- replace with YOUR frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 // Performance Optimization: Cache static files for 1 year
 app.use(express.static(path.join(__dirname, '../public'), { 
