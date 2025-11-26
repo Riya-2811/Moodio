@@ -20,41 +20,58 @@ const allowedOrigins = [
   "http://localhost:3001"
 ];
 
-// Manual CORS middleware - explicit and reliable
+// Use cors package with explicit configuration
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, Postman, or same-origin)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // Log for debugging
+        console.log(`[CORS] Origin not in allowed list: ${origin}`);
+        // In production, be strict; in development, allow all
+        if (process.env.NODE_ENV === 'production') {
+          callback(new Error('Not allowed by CORS'));
+        } else {
+          callback(null, true);
+        }
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    exposedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    maxAge: 86400,
+  })
+);
+
+// Additional manual CORS middleware as backup - ensures headers are always set
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
   // Log for debugging
   console.log(`[CORS] Request from origin: ${origin}, Method: ${req.method}, Path: ${req.path}`);
   
-  // Check if origin is allowed
+  // Always set CORS headers if origin matches
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-    console.log(`[CORS] Allowed origin: ${origin}`);
-  } else if (!origin) {
-    // For requests with no origin (same-origin, Postman, curl, etc.), don't set CORS headers
-    // or set to first allowed origin in production
-    if (process.env.NODE_ENV === 'production') {
-      res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
-    }
-  } else if (process.env.NODE_ENV !== 'production') {
-    // In development, allow all origins
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    console.log(`[CORS] Development mode - allowed: ${origin}`);
-  } else {
-    console.warn(`[CORS] Blocked origin: ${origin}`);
-    // Still set headers but with first allowed origin (browser will block if doesn't match)
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
+    console.log(`[CORS] Headers set for origin: ${origin}`);
   }
   
-  // Set CORS headers - IMPORTANT: credentials: true requires specific origin, not *
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
-  res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
-  
-  // Handle preflight requests immediately
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     console.log(`[CORS] Handling OPTIONS preflight for ${req.path}`);
     return res.status(204).end();
@@ -115,6 +132,17 @@ app.get('/api/cors-test', (req, res) => {
   res.json({ 
     status: 'CORS is working',
     origin: req.headers.origin,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test route for preferences endpoint
+app.get('/api/user/preferences/test', (req, res) => {
+  res.json({ 
+    status: 'Preferences endpoint is accessible',
+    origin: req.headers.origin,
+    method: req.method,
     timestamp: new Date().toISOString()
   });
 });
