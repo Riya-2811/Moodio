@@ -16,17 +16,56 @@ const PORT = process.env.PORT || 5000;
 // Performance Optimization: Enable compression (reduces network load by ~70%)
 app.use(compression());
 
-// Middleware
+// CORS Configuration - Must be before other middleware
+const allowedOrigins = [
+  "https://moodio-10.onrender.com",
+  "http://localhost:3000",
+  "http://localhost:3001"
+];
+
+// Normalize origin (remove trailing slash)
+const normalizeOrigin = (origin) => {
+  if (!origin) return null;
+  return origin.replace(/\/$/, '');
+};
+
 app.use(
   cors({
-    origin: "https://moodio-10.onrender.com",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, or same-origin requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      const normalizedOrigin = normalizeOrigin(origin);
+      const normalizedAllowed = allowedOrigins.map(normalizeOrigin);
+      
+      // Check if origin (normalized) is in allowed list
+      if (normalizedAllowed.includes(normalizedOrigin)) {
+        callback(null, true);
+      } else {
+        // For development, allow all origins
+        if (process.env.NODE_ENV !== 'production') {
+          callback(null, true);
+        } else {
+          console.warn(`CORS blocked origin: ${origin}`);
+          callback(new Error('Not allowed by CORS'));
+        }
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    exposedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    maxAge: 86400, // 24 hours
   })
 );
+
+// Handle preflight requests explicitly for all routes
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,6 +97,15 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Moodio API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// CORS test route
+app.get('/api/cors-test', (req, res) => {
+  res.json({ 
+    status: 'CORS is working',
+    origin: req.headers.origin,
     timestamp: new Date().toISOString()
   });
 });
