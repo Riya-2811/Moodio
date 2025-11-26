@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Pink Body/Base (behind face) -->
+  <ellipse fill="#F48FB1" cx="50" cy="62" rx="18" ry="12"/>
+  
+  <!-- Main Pink Face Circle -->
+  <circle fill="#F8BBD0" cx="50" cy="45" r="20" stroke="#E91E63" stroke-width="2"/>
+  
+  <!-- Eyes -->
+  <circle fill="#1A1F3A" cx="42" cy="42" r="2.5"/>
+  <circle fill="#1A1F3A" cx="58" cy="42" r="2.5"/>
+  
+  <!-- Smile -->
+  <path d="M 38 48 Q 50 54, 62 48" stroke="#1A1F3A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Blue Heart (Top Left) -->
+  <g transform="translate(30, 28) scale(0.6)">
+    <path fill="#64B5F6" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+  </g>
+  
+  <!-- Green Heart (Right Side) -->
+  <g transform="translate(58, 50) scale(0.6)">
+    <path fill="#81C784" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+  </g>
+</svg>
