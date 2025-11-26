@@ -8,7 +8,7 @@ import axios from 'axios';
 // Base URL for backend API
 // Use environment variable if available, otherwise default to port 5000
 // If server runs on port 5001, set REACT_APP_API_URL=http://localhost:5001/api in .env
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://moodio-pmxy.onrender.com';
 
 // Create axios instance with default configuration
 const api = axios.create({
