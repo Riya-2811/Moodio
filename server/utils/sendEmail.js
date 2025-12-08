@@ -25,16 +25,23 @@ const createTransporter = () => {
   console.log('   EMAIL_PASS length:', emailPass.length, 'characters');
   console.log('   EMAIL_PASS (first 4 chars):', emailPass.substring(0, 4) + '****');
 
+  // Use explicit Gmail SMTP configuration with SSL
   return nodemailer.createTransport({
-    service: 'gmail', // You can change this to 'outlook', 'yahoo', etc.
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL
     auth: {
       user: emailUser,
       pass: emailPass, // Use App Password for Gmail (spaces removed)
     },
-    // Add connection timeout settings to prevent hanging
-    connectionTimeout: 60000, // 60 seconds
-    greetingTimeout: 30000, // 30 seconds
-    socketTimeout: 60000, // 60 seconds
+    // Connection timeout settings
+    connectionTimeout: 20000, // 20 seconds
+    greetingTimeout: 10000, // 10 seconds
+    socketTimeout: 20000, // 20 seconds
+    // Retry settings
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 3,
   });
 };
 
@@ -225,9 +232,13 @@ Reply to: ${email}
       `,
     };
 
-    // Send email (no timeout - let Gmail handle it)
+    // Send email with timeout protection
     console.log('📤 Sending email...');
-    const info = await transporter.sendMail(mailOptions);
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Email send timeout (30s)')), 30000)
+    );
+    const info = await Promise.race([sendPromise, timeoutPromise]);
     
     console.log('✅ Contact email sent successfully!');
     console.log('   Message ID:', info.messageId);
