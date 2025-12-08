@@ -1,10 +1,12 @@
 /**
  * Email Utility
- * Sends emails using nodemailer
- * Configure via environment variables: EMAIL_USER, EMAIL_PASS, ADMIN_EMAIL
+ * Sends emails using Resend API (works better with Render free tier - no SMTP blocking)
+ * Configure via environment variables: RESEND_API_KEY, ADMIN_EMAIL, FROM_EMAIL
+ * Fallback to nodemailer if RESEND_API_KEY is not set
  */
 
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 /**
  * Create reusable transporter object using SMTP transport
@@ -50,6 +52,165 @@ const createTransporter = () => {
 };
 
 /**
+ * Send email using Resend API (HTTP-based, works with Render free tier)
+ * This is the preferred method as it doesn't require SMTP connections
+ */
+const sendWithResend = async (contactData) => {
+  const { name, email, subject, message } = contactData;
+  
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const adminEmail = (process.env.ADMIN_EMAIL || 'contact.moodio@gmail.com').trim();
+  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'; // Resend default or your verified domain
+  
+  console.log('📧 Attempting to send email via Resend API...');
+  console.log('   From:', fromEmail);
+  console.log('   To:', adminEmail);
+  console.log('   Subject: New Contact Form Message – Moodio');
+
+  try {
+    // Escape HTML to prevent XSS attacks
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+
+    const { data, error } = await resend.emails.send({
+      from: `Moodio Contact Form <${fromEmail}>`,
+      to: [adminEmail],
+      replyTo: email,
+      subject: 'New Contact Form Message – Moodio',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+              }
+              .email-container {
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              }
+              .header {
+                background: linear-gradient(135deg, #B39BC8 0%, #F8BBD0 100%);
+                color: white;
+                padding: 20px;
+                text-align: center;
+              }
+              .content {
+                padding: 20px;
+              }
+              .field {
+                margin-bottom: 15px;
+              }
+              .label {
+                font-weight: bold;
+                color: #666;
+                display: block;
+                margin-bottom: 5px;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              .value {
+                color: #333;
+                padding: 10px;
+                background: #f9f9f9;
+                border-radius: 5px;
+                border-left: 3px solid #B39BC8;
+                word-wrap: break-word;
+              }
+              .footer {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #ddd;
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="header">
+                <h2 style="margin: 0;">📬 New Contact Form Message</h2>
+              </div>
+              <div class="content">
+                <div class="field">
+                  <span class="label">Name:</span>
+                  <div class="value">${safeName}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Email:</span>
+                  <div class="value">${safeEmail}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Subject:</span>
+                  <div class="value">${safeSubject}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Message:</span>
+                  <div class="value" style="white-space: pre-wrap;">${safeMessage}</div>
+                </div>
+                <div class="footer">
+                  <p>This message was sent from the Moodio contact form.</p>
+                  <p>Reply to: ${safeEmail}</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      console.error('❌ Resend API error:', error);
+      return {
+        success: false,
+        error: `Resend API error: ${error.message}`,
+        details: error,
+      };
+    }
+
+    console.log('✅ Contact email sent successfully via Resend!');
+    console.log('   Email ID:', data?.id);
+    console.log('   To:', adminEmail);
+    
+    return {
+      success: true,
+      messageId: data?.id,
+      response: 'Email sent via Resend API',
+    };
+  } catch (error) {
+    console.error('❌ Error sending email via Resend:', error);
+    return {
+      success: false,
+      error: `Resend error: ${error.message}`,
+      details: error,
+    };
+  }
+};
+
+/**
  * Send contact form email to admin
  * @param {Object} contactData - Contact form data
  * @param {string} contactData.name - User's name
@@ -61,21 +222,27 @@ const createTransporter = () => {
 const sendContactEmail = async (contactData) => {
   const { name, email, subject, message } = contactData;
 
-  // Check if email is configured
+  // Try Resend API first (works better with Render free tier - no SMTP blocking)
+  if (process.env.RESEND_API_KEY) {
+    return await sendWithResend(contactData);
+  }
+
+  // Fallback to nodemailer (SMTP) if Resend not configured
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email not sent: Email credentials not configured');
+    console.warn('⚠️  Email not sent: No email service configured');
+    console.warn('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'NOT SET');
     console.warn('   EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'NOT SET');
     console.warn('   EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'NOT SET');
     return {
       success: false,
-      error: 'Email service not configured',
+      error: 'Email service not configured. Please set RESEND_API_KEY (recommended) or EMAIL_USER/EMAIL_PASS',
     };
   }
 
   // Get admin email from environment or use default
   const adminEmail = (process.env.ADMIN_EMAIL || process.env.EMAIL_USER || '').trim();
   
-  console.log('📧 Attempting to send email...');
+  console.log('📧 Attempting to send email via SMTP (fallback)...');
   console.log('   From:', process.env.EMAIL_USER);
   console.log('   To:', adminEmail);
   console.log('   Subject: New Contact Form Message – Moodio');
@@ -302,6 +469,164 @@ Reply to: ${email}
       success: false,
       error: errorMessage,
       details: error.message,
+    };
+  }
+};
+
+/**
+ * Send email using Resend API (HTTP-based, works with Render free tier)
+ */
+const sendWithResend = async (contactData) => {
+  const { name, email, subject, message } = contactData;
+  
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const adminEmail = (process.env.ADMIN_EMAIL || 'contact.moodio@gmail.com').trim();
+  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'; // Resend default or your verified domain
+  
+  console.log('📧 Attempting to send email via Resend API...');
+  console.log('   From:', fromEmail);
+  console.log('   To:', adminEmail);
+  console.log('   Subject: New Contact Form Message – Moodio');
+
+  try {
+    // Escape HTML to prevent XSS attacks
+    const escapeHtml = (text) => {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+
+    const { data, error } = await resend.emails.send({
+      from: `Moodio Contact Form <${fromEmail}>`,
+      to: [adminEmail],
+      replyTo: email,
+      subject: 'New Contact Form Message – Moodio',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+              }
+              .email-container {
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              }
+              .header {
+                background: linear-gradient(135deg, #B39BC8 0%, #F8BBD0 100%);
+                color: white;
+                padding: 20px;
+                text-align: center;
+              }
+              .content {
+                padding: 20px;
+              }
+              .field {
+                margin-bottom: 15px;
+              }
+              .label {
+                font-weight: bold;
+                color: #666;
+                display: block;
+                margin-bottom: 5px;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              .value {
+                color: #333;
+                padding: 10px;
+                background: #f9f9f9;
+                border-radius: 5px;
+                border-left: 3px solid #B39BC8;
+                word-wrap: break-word;
+              }
+              .footer {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #ddd;
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="header">
+                <h2 style="margin: 0;">📬 New Contact Form Message</h2>
+              </div>
+              <div class="content">
+                <div class="field">
+                  <span class="label">Name:</span>
+                  <div class="value">${safeName}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Email:</span>
+                  <div class="value">${safeEmail}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Subject:</span>
+                  <div class="value">${safeSubject}</div>
+                </div>
+                <div class="field">
+                  <span class="label">Message:</span>
+                  <div class="value" style="white-space: pre-wrap;">${safeMessage}</div>
+                </div>
+                <div class="footer">
+                  <p>This message was sent from the Moodio contact form.</p>
+                  <p>Reply to: ${safeEmail}</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      console.error('❌ Resend API error:', error);
+      return {
+        success: false,
+        error: `Resend API error: ${error.message}`,
+        details: error,
+      };
+    }
+
+    console.log('✅ Contact email sent successfully via Resend!');
+    console.log('   Email ID:', data?.id);
+    console.log('   To:', adminEmail);
+    
+    return {
+      success: true,
+      messageId: data?.id,
+      response: 'Email sent via Resend API',
+    };
+  } catch (error) {
+    console.error('❌ Error sending email via Resend:', error);
+    return {
+      success: false,
+      error: `Resend error: ${error.message}`,
+      details: error,
     };
   }
 };
