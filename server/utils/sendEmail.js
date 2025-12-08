@@ -76,21 +76,34 @@ const sendContactEmail = async (contactData) => {
       };
     }
 
-    // Verify transporter connection with timeout
+    // Verify transporter connection with longer timeout (optional - skip if it times out)
+    // Verification is optional - we'll catch errors during actual send if credentials are wrong
     try {
       const verifyPromise = transporter.verify();
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Email verification timeout (5s)')), 5000)
+        setTimeout(() => reject(new Error('Email verification timeout (10s)')), 10000)
       );
       await Promise.race([verifyPromise, timeoutPromise]);
       console.log('✅ Email transporter verified successfully');
     } catch (verifyError) {
-      console.error('❌ Email transporter verification failed:', verifyError.message);
-      console.error('   Full error:', verifyError);
-      return {
-        success: false,
-        error: `Email configuration error: ${verifyError.message}`,
-      };
+      // Don't fail if verification times out - just log a warning and continue
+      // The actual send will fail if credentials are wrong
+      if (verifyError.message.includes('timeout')) {
+        console.warn('⚠️  Email verification timed out, but continuing anyway...');
+        console.warn('   This is usually fine - we\'ll verify during actual send');
+      } else {
+        console.error('❌ Email transporter verification failed:', verifyError.message);
+        console.error('   Full error:', verifyError);
+        // Only fail if it's an authentication error, not a timeout
+        if (verifyError.code === 'EAUTH' || verifyError.message.includes('Invalid login')) {
+          return {
+            success: false,
+            error: `Email authentication failed: ${verifyError.message}`,
+          };
+        }
+        // For other errors, just warn and continue
+        console.warn('⚠️  Verification error, but continuing to attempt send...');
+      }
     }
 
     // Escape HTML to prevent XSS attacks
