@@ -25,23 +25,27 @@ const createTransporter = () => {
   console.log('   EMAIL_PASS length:', emailPass.length, 'characters');
   console.log('   EMAIL_PASS (first 4 chars):', emailPass.substring(0, 4) + '****');
 
-  // Use explicit Gmail SMTP configuration with SSL
+  // Use explicit Gmail SMTP configuration with STARTTLS (port 587)
+  // Port 587 is more commonly allowed through firewalls than 465
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    port: 587,
+    secure: false, // Use STARTTLS instead of SSL
+    requireTLS: true, // Require TLS
     auth: {
       user: emailUser,
       pass: emailPass, // Use App Password for Gmail (spaces removed)
     },
-    // Connection timeout settings
-    connectionTimeout: 20000, // 20 seconds
-    greetingTimeout: 10000, // 10 seconds
-    socketTimeout: 20000, // 20 seconds
+    // Connection timeout settings - shorter for faster failure
+    connectionTimeout: 15000, // 15 seconds
+    greetingTimeout: 5000, // 5 seconds
+    socketTimeout: 15000, // 15 seconds
     // Retry settings
-    pool: true,
-    maxConnections: 1,
-    maxMessages: 3,
+    pool: false, // Don't pool connections
+    // TLS options
+    tls: {
+      rejectUnauthorized: true, // Verify SSL certificates
+    },
   });
 };
 
@@ -232,24 +236,51 @@ Reply to: ${email}
       `,
     };
 
-    // Send email with timeout protection
+    // Send email with retry logic and timeout protection
     console.log('📤 Sending email...');
-    const sendPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Email send timeout (30s)')), 30000)
-    );
-    const info = await Promise.race([sendPromise, timeoutPromise]);
     
-    console.log('✅ Contact email sent successfully!');
-    console.log('   Message ID:', info.messageId);
-    console.log('   Response:', info.response);
-    console.log('   To:', adminEmail);
+    let lastError;
+    const maxRetries = 2;
     
-    return {
-      success: true,
-      messageId: info.messageId,
-      response: info.response,
-    };
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 1) {
+          console.log(`   Retry attempt ${attempt}/${maxRetries}...`);
+          // Wait a bit before retry
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        const sendPromise = transporter.sendMail(mailOptions);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Email send timeout (25s)')), 25000)
+        );
+        const info = await Promise.race([sendPromise, timeoutPromise]);
+        
+        console.log('✅ Contact email sent successfully!');
+        console.log('   Message ID:', info.messageId);
+        console.log('   Response:', info.response);
+        console.log('   To:', adminEmail);
+        
+        return {
+          success: true,
+          messageId: info.messageId,
+          response: info.response,
+        };
+      } catch (error) {
+        lastError = error;
+        console.warn(`   Attempt ${attempt} failed:`, error.message);
+        
+        // If it's a connection timeout and we have retries left, continue
+        if (error.code === 'ETIMEDOUT' && attempt < maxRetries) {
+          continue;
+        }
+        // Otherwise, throw the error
+        throw error;
+      }
+    }
+    
+    // Should not reach here, but just in case
+    throw lastError;
   } catch (error) {
     console.error('❌ Error sending contact email:');
     console.error('   Error code:', error.code);
