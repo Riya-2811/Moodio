@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import WebcamModal from '../components/WebcamModal';
 import ThoughtOfTheDay from '../components/ThoughtOfTheDay';
+import DidYouKnow from '../components/DidYouKnow';
 import FloatingCameraButton from '../components/FloatingCameraButton';
 import CuteAssistant from '../components/CuteAssistant';
 import Logo from '../components/Logo';
@@ -243,6 +244,11 @@ const Home = () => {
       {/* Thought of the Day - Now below the Features Section */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ThoughtOfTheDay />
+      </div>
+
+      {/* Did You Know Section - Between Thought of the Day and About */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DidYouKnow />
       </div>
 
       {/* About Section Preview */}
