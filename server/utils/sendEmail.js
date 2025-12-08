@@ -76,9 +76,13 @@ const sendContactEmail = async (contactData) => {
       };
     }
 
-    // Verify transporter connection
+    // Verify transporter connection with timeout
     try {
-      await transporter.verify();
+      const verifyPromise = transporter.verify();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email verification timeout (5s)')), 5000)
+      );
+      await Promise.race([verifyPromise, timeoutPromise]);
       console.log('✅ Email transporter verified successfully');
     } catch (verifyError) {
       console.error('❌ Email transporter verification failed:', verifyError.message);
@@ -230,9 +234,13 @@ Reply to: ${email}
       `,
     };
 
-    // Send email
+    // Send email with timeout
     console.log('📤 Sending email...');
-    const info = await transporter.sendMail(mailOptions);
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Email send timeout (15s)')), 15000)
+    );
+    const info = await Promise.race([sendPromise, timeoutPromise]);
     
     console.log('✅ Contact email sent successfully!');
     console.log('   Message ID:', info.messageId);

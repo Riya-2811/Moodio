@@ -52,9 +52,14 @@ const submitTherapistRequest = async (req, res) => {
       userName: userName ? userName.trim() : undefined,
     });
 
-    // Save to MongoDB
+    // Save to MongoDB with timeout
     console.log('💾 Saving to MongoDB...');
-    const savedRequest = await therapistRequest.save();
+    const savePromise = therapistRequest.save();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('MongoDB save timeout')), 10000)
+    );
+    
+    const savedRequest = await Promise.race([savePromise, timeoutPromise]);
     console.log('✅ Therapist request saved to database:', savedRequest._id);
 
     // Format consultation method for email
@@ -84,34 +89,7 @@ ${userEmail ? `User Email: ${userEmail}` : ''}
 ${reason ? `What they need help with:\n${reason}` : 'No additional details provided.'}
     `.trim();
 
-    // Send email notification (non-blocking - don't fail if email fails)
-    try {
-      const emailResult = await sendContactEmail({
-        name: userName || 'Anonymous User',
-        email: userEmail || 'no-email-provided@moodio.com',
-        subject: 'New Therapist Consultation Request - Moodio',
-        message: emailMessage,
-      });
-
-      if (emailResult.success) {
-        console.log('✅ Therapist request email sent successfully');
-        console.log('   Email details:', {
-          messageId: emailResult.messageId,
-          response: emailResult.response,
-        });
-      } else {
-        console.error('❌ Therapist request email failed to send, but request was saved');
-        console.error('   Error:', emailResult.error);
-        console.error('   Details:', emailResult.details || 'No additional details');
-      }
-    } catch (emailError) {
-      // Log email error but don't fail the request
-      console.error('❌ Email sending error (request still saved):');
-      console.error('   Error:', emailError.message);
-      console.error('   Stack:', emailError.stack);
-    }
-
-    // Return success response
+    // Return success response IMMEDIATELY (don't wait for email)
     res.status(201).json({
       success: true,
       message: 'Request submitted! We\'ll help you find suitable therapists and connect with you shortly.',
@@ -121,6 +99,36 @@ ${reason ? `What they need help with:\n${reason}` : 'No additional details provi
         timeAvailability: savedRequest.timeAvailability,
         createdAt: savedRequest.createdAt,
       },
+    });
+
+    // Send email notification ASYNCHRONOUSLY (non-blocking - don't wait for it)
+    // Use setImmediate to ensure response is sent first
+    setImmediate(async () => {
+      try {
+        const emailResult = await sendContactEmail({
+          name: userName || 'Anonymous User',
+          email: userEmail || 'no-email-provided@moodio.com',
+          subject: 'New Therapist Consultation Request - Moodio',
+          message: emailMessage,
+        });
+
+        if (emailResult.success) {
+          console.log('✅ Therapist request email sent successfully');
+          console.log('   Email details:', {
+            messageId: emailResult.messageId,
+            response: emailResult.response,
+          });
+        } else {
+          console.error('❌ Therapist request email failed to send, but request was saved');
+          console.error('   Error:', emailResult.error);
+          console.error('   Details:', emailResult.details || 'No additional details');
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the request
+        console.error('❌ Email sending error (request still saved):');
+        console.error('   Error:', emailError.message);
+        console.error('   Stack:', emailError.stack);
+      }
     });
   } catch (error) {
     console.error('❌ Error submitting therapist request:');

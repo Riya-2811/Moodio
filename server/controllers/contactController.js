@@ -79,40 +79,17 @@ const submitContact = async (req, res) => {
       message: message.trim(),
     });
 
-    // Save to MongoDB
+    // Save to MongoDB with timeout
     console.log('💾 Saving to MongoDB...');
-    const savedMessage = await contactMessage.save();
+    const savePromise = contactMessage.save();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('MongoDB save timeout')), 10000)
+    );
+    
+    const savedMessage = await Promise.race([savePromise, timeoutPromise]);
     console.log('✅ Contact message saved to database:', savedMessage._id);
 
-    // Send email notification (non-blocking - don't fail if email fails)
-    try {
-      const emailResult = await sendContactEmail({
-        name: savedMessage.name,
-        email: savedMessage.email,
-        subject: savedMessage.subject,
-        message: savedMessage.message,
-      });
-
-      if (emailResult.success) {
-        console.log('✅ Contact email sent successfully');
-        console.log('   Email details:', {
-          messageId: emailResult.messageId,
-          response: emailResult.response,
-        });
-      } else {
-        console.error('❌ Contact email failed to send, but message was saved');
-        console.error('   Error:', emailResult.error);
-        console.error('   Details:', emailResult.details || 'No additional details');
-        console.error('   ⚠️  Check your .env file for EMAIL_USER, EMAIL_PASS, and ADMIN_EMAIL');
-      }
-    } catch (emailError) {
-      // Log email error but don't fail the request
-      console.error('❌ Email sending error (message still saved):');
-      console.error('   Error:', emailError.message);
-      console.error('   Stack:', emailError.stack);
-    }
-
-    // Return success response
+    // Return success response IMMEDIATELY (don't wait for email)
     res.status(201).json({
       success: true,
       message: 'Message received! We\'ll get back to you soon.',
@@ -123,6 +100,37 @@ const submitContact = async (req, res) => {
         subject: savedMessage.subject,
         createdAt: savedMessage.createdAt,
       },
+    });
+
+    // Send email notification ASYNCHRONOUSLY (non-blocking - don't wait for it)
+    // Use setImmediate to ensure response is sent first
+    setImmediate(async () => {
+      try {
+        const emailResult = await sendContactEmail({
+          name: savedMessage.name,
+          email: savedMessage.email,
+          subject: savedMessage.subject,
+          message: savedMessage.message,
+        });
+
+        if (emailResult.success) {
+          console.log('✅ Contact email sent successfully');
+          console.log('   Email details:', {
+            messageId: emailResult.messageId,
+            response: emailResult.response,
+          });
+        } else {
+          console.error('❌ Contact email failed to send, but message was saved');
+          console.error('   Error:', emailResult.error);
+          console.error('   Details:', emailResult.details || 'No additional details');
+          console.error('   ⚠️  Check your .env file for EMAIL_USER, EMAIL_PASS, and ADMIN_EMAIL');
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the request
+        console.error('❌ Email sending error (message still saved):');
+        console.error('   Error:', emailError.message);
+        console.error('   Stack:', emailError.stack);
+      }
     });
   } catch (error) {
     console.error('❌ Error submitting contact form:');
