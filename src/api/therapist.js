@@ -12,26 +12,46 @@ import api from '../utils/api';
  */
 export const submitTherapistRequest = async (requestData) => {
   try {
+    console.log('[Therapist API] Submitting request to:', '/therapist');
     const response = await api.post('/therapist', requestData);
+    console.log('[Therapist API] Success:', response.status);
     return {
       success: true,
       data: response.data,
       message: response.data.message || 'Request submitted successfully!',
     };
   } catch (error) {
+    console.error('[Therapist API] Error:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+    });
+    
     // Handle different error types
     if (error.response) {
       // Server responded with error status
+      const status = error.response.status;
+      let errorMessage = error.response.data?.message || error.response.data?.error || 'Failed to submit request. Please try again.';
+      
+      if (status === 404) {
+        errorMessage = 'Therapist endpoint not found. Please check backend configuration.';
+      } else if (status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
       return {
         success: false,
-        error: error.response.data?.message || error.response.data?.error || 'Failed to submit request. Please try again.',
-        status: error.response.status,
+        error: errorMessage,
+        status: status,
       };
     } else if (error.request) {
       // Request was made but no response received
       return {
         success: false,
-        error: 'Network error. Please check your connection and try again.',
+        error: 'Network error. Unable to reach server. Please check your connection and try again.',
       };
     } else {
       // Something else happened

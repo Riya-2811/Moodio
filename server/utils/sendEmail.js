@@ -16,11 +16,20 @@ const createTransporter = () => {
     return null;
   }
 
+  // Clean email password - remove spaces (Gmail app passwords sometimes have spaces in env vars)
+  const emailPass = String(process.env.EMAIL_PASS).replace(/\s+/g, '').trim();
+  const emailUser = String(process.env.EMAIL_USER).trim();
+
+  console.log('📧 Email configuration:');
+  console.log('   EMAIL_USER:', emailUser);
+  console.log('   EMAIL_PASS length:', emailPass.length, 'characters');
+  console.log('   EMAIL_PASS (first 4 chars):', emailPass.substring(0, 4) + '****');
+
   return nodemailer.createTransport({
     service: 'gmail', // You can change this to 'outlook', 'yahoo', etc.
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Use App Password for Gmail
+      user: emailUser,
+      pass: emailPass, // Use App Password for Gmail (spaces removed)
     },
   });
 };
@@ -49,7 +58,7 @@ const sendContactEmail = async (contactData) => {
   }
 
   // Get admin email from environment or use default
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+  const adminEmail = (process.env.ADMIN_EMAIL || process.env.EMAIL_USER || '').trim();
   
   console.log('📧 Attempting to send email...');
   console.log('   From:', process.env.EMAIL_USER);

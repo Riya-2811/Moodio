@@ -6,10 +6,9 @@
 import axios from 'axios';
 
 // Base URL for backend API
-// Use environment variable if available, otherwise default to local backend for development
+// Use environment variable if available, otherwise default to production backend
 // For production, set REACT_APP_API_URL=https://moodio-pmxy.onrender.com/api in .env
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL || 'https://moodio-pmxy.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://moodio-pmxy.onrender.com/api';
 
 // Create axios instance with default configuration
 const api = axios.create({
