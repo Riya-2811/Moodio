@@ -51,13 +51,8 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  express.static(path.join(__dirname, "../public"), {
-    maxAge: "1y",
-    etag: true,
-    lastModified: true,
-  })
-);
+// Don't serve static files - frontend is deployed separately on Render
+// Static file serving removed to prevent %PUBLIC_URL% errors
 
 /* ------------------------------------------------------------------
    MONGODB CONNECTION
@@ -146,7 +141,32 @@ app.get("/", (req, res) => {
   res.json({
     message: "Welcome to Moodio API",
     version: "1.0.0",
+    endpoints: {
+      health: "/api/health",
+      contact: "/api/contact",
+      therapist: "/api/therapist",
+    },
+    note: "This is the backend API. Frontend is available at https://moodio-10.onrender.com",
   });
+});
+
+// Catch-all for non-API routes (must come after all other routes)
+app.use((req, res) => {
+  // Only handle non-API routes
+  if (!req.path.startsWith("/api")) {
+    res.status(404).json({
+      error: "Not Found",
+      message: "This is the backend API server. The frontend is available at https://moodio-10.onrender.com",
+      path: req.path,
+    });
+  } else {
+    // API route not found
+    res.status(404).json({
+      error: "API endpoint not found",
+      path: req.path,
+      method: req.method,
+    });
+  }
 });
 
 /* ------------------------------------------------------------------
