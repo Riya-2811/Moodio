@@ -20,6 +20,9 @@ const { sendContactEmail } = require('../utils/sendEmail');
  */
 router.get('/test-email', async (req, res) => {
   try {
+    // Set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+    
     // Check if email is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       return res.status(400).json({
@@ -34,6 +37,10 @@ router.get('/test-email', async (req, res) => {
       });
     }
 
+    console.log('🧪 Test email endpoint called');
+    console.log('   EMAIL_USER:', process.env.EMAIL_USER);
+    console.log('   ADMIN_EMAIL:', process.env.ADMIN_EMAIL || process.env.EMAIL_USER);
+
     // Try to send a test email
     const testResult = await sendContactEmail({
       name: 'Test User',
@@ -43,7 +50,8 @@ router.get('/test-email', async (req, res) => {
     });
 
     if (testResult.success) {
-      res.json({
+      console.log('✅ Test email sent successfully');
+      return res.json({
         success: true,
         message: 'Test email sent successfully!',
         details: {
@@ -53,7 +61,8 @@ router.get('/test-email', async (req, res) => {
         },
       });
     } else {
-      res.status(500).json({
+      console.error('❌ Test email failed:', testResult.error);
+      return res.status(500).json({
         success: false,
         error: 'Failed to send test email',
         details: testResult.error,
@@ -61,11 +70,12 @@ router.get('/test-email', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Test email error:', error);
-    res.status(500).json({
+    console.error('❌ Test email error:', error);
+    return res.status(500).json({
       success: false,
       error: 'Test email failed',
       details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 });
