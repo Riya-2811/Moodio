@@ -59,8 +59,15 @@ const sendWithResend = async (contactData) => {
   const { name, email, subject, message } = contactData;
   
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const adminEmail = (process.env.ADMIN_EMAIL || 'contact.moodio@gmail.com').trim();
+  
+  // Resend free tier only allows sending to the account owner's email
+  // Must use the email you signed up with Resend (riyachandna2005@gmail.com)
+  // Set RESEND_ACCOUNT_EMAIL to your Resend account email, or it will use EMAIL_USER
+  const adminEmail = (process.env.RESEND_ACCOUNT_EMAIL || process.env.EMAIL_USER || 'riyachandna2005@gmail.com').trim();
   const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'; // Resend default or your verified domain
+  
+  console.log('📧 Resend API Configuration:');
+  console.log('   Using Resend account email (free tier requirement):', adminEmail);
   
   console.log('📧 Attempting to send email via Resend API...');
   console.log('   From:', fromEmail);
