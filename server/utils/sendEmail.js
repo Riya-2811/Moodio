@@ -60,14 +60,27 @@ const sendWithResend = async (contactData) => {
   
   const resend = new Resend(process.env.RESEND_API_KEY);
   
-  // Resend free tier only allows sending to the account owner's email
-  // Must use the email you signed up with Resend (riyachandna2005@gmail.com)
-  // Set RESEND_ACCOUNT_EMAIL to your Resend account email, or it will use EMAIL_USER
-  const adminEmail = (process.env.RESEND_ACCOUNT_EMAIL || process.env.EMAIL_USER || 'riyachandna2005@gmail.com').trim();
-  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'; // Resend default or your verified domain
+  // Resend free tier restriction: can only send to account owner's email
+  // To send to contact.moodio@gmail.com, you need to:
+  // Option 1: Verify a domain in Resend (recommended)
+  // Option 2: Use Gmail forwarding from riyachandna2005@gmail.com to contact.moodio@gmail.com
+  
+  // Check if domain is verified (FROM_EMAIL contains a custom domain)
+  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+  const hasVerifiedDomain = fromEmail.includes('@') && !fromEmail.includes('@resend.dev') && !fromEmail.includes('@onboarding.resend.dev');
+  
+  // If domain is verified, use ADMIN_EMAIL; otherwise use Resend account email
+  const adminEmail = hasVerifiedDomain 
+    ? (process.env.ADMIN_EMAIL || 'contact.moodio@gmail.com').trim()
+    : (process.env.RESEND_ACCOUNT_EMAIL || process.env.EMAIL_USER || 'riyachandna2005@gmail.com').trim();
   
   console.log('📧 Resend API Configuration:');
-  console.log('   Using Resend account email (free tier requirement):', adminEmail);
+  console.log('   From:', fromEmail);
+  console.log('   To:', adminEmail);
+  console.log('   Has verified domain:', hasVerifiedDomain);
+  if (!hasVerifiedDomain) {
+    console.log('   ⚠️  Free tier: Sending to Resend account email. To send to contact.moodio@gmail.com, verify a domain in Resend.');
+  }
   
   console.log('📧 Attempting to send email via Resend API...');
   console.log('   From:', fromEmail);
