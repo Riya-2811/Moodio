@@ -54,6 +54,18 @@ app.use(express.urlencoded({ extended: true }));
 // Don't serve static files - frontend is deployed separately on Render
 // Static file serving removed to prevent %PUBLIC_URL% errors
 
+// Handle any path containing %PUBLIC_URL% (React build placeholders) - must be early
+app.use((req, res, next) => {
+  if (req.path.includes('%PUBLIC_URL%') || req.path.includes('PUBLIC_URL')) {
+    return res.status(404).json({
+      error: "Resource not found",
+      message: "This is the backend API server. Frontend assets are served at https://moodio-10.onrender.com",
+      path: req.path,
+    });
+  }
+  next();
+});
+
 /* ------------------------------------------------------------------
    MONGODB CONNECTION
 ------------------------------------------------------------------ */
@@ -134,10 +146,32 @@ try {
 }
 
 /* ------------------------------------------------------------------
+   HANDLE COMMON BROWSER RESOURCE REQUESTS
+   These prevent 404 errors when browsers try to load favicon, manifest, etc.
+------------------------------------------------------------------ */
+
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+app.get("/favicon.svg", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+app.get("/manifest.json", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+/* ------------------------------------------------------------------
    DEFAULT ROUTE
 ------------------------------------------------------------------ */
 
 app.get("/", (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   res.json({
     message: "Welcome to Moodio API",
     version: "1.0.0",
@@ -152,6 +186,8 @@ app.get("/", (req, res) => {
 
 // Catch-all for non-API routes (must come after all other routes)
 app.use((req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
   // Only handle non-API routes
   if (!req.path.startsWith("/api")) {
     res.status(404).json({
