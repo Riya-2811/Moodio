@@ -31,6 +31,10 @@ const createTransporter = () => {
       user: emailUser,
       pass: emailPass, // Use App Password for Gmail (spaces removed)
     },
+    // Add connection timeout settings to prevent hanging
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000, // 30 seconds
+    socketTimeout: 60000, // 60 seconds
   });
 };
 
@@ -76,35 +80,9 @@ const sendContactEmail = async (contactData) => {
       };
     }
 
-    // Verify transporter connection with longer timeout (optional - skip if it times out)
-    // Verification is optional - we'll catch errors during actual send if credentials are wrong
-    try {
-      const verifyPromise = transporter.verify();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Email verification timeout (10s)')), 10000)
-      );
-      await Promise.race([verifyPromise, timeoutPromise]);
-      console.log('✅ Email transporter verified successfully');
-    } catch (verifyError) {
-      // Don't fail if verification times out - just log a warning and continue
-      // The actual send will fail if credentials are wrong
-      if (verifyError.message.includes('timeout')) {
-        console.warn('⚠️  Email verification timed out, but continuing anyway...');
-        console.warn('   This is usually fine - we\'ll verify during actual send');
-      } else {
-        console.error('❌ Email transporter verification failed:', verifyError.message);
-        console.error('   Full error:', verifyError);
-        // Only fail if it's an authentication error, not a timeout
-        if (verifyError.code === 'EAUTH' || verifyError.message.includes('Invalid login')) {
-          return {
-            success: false,
-            error: `Email authentication failed: ${verifyError.message}`,
-          };
-        }
-        // For other errors, just warn and continue
-        console.warn('⚠️  Verification error, but continuing to attempt send...');
-      }
-    }
+    // Skip verification - it's slow and not necessary
+    // We'll catch errors during actual send if credentials are wrong
+    console.log('📧 Skipping email verification (will verify during send)...');
 
     // Escape HTML to prevent XSS attacks
     const escapeHtml = (text) => {
@@ -247,13 +225,9 @@ Reply to: ${email}
       `,
     };
 
-    // Send email with timeout
+    // Send email (no timeout - let Gmail handle it)
     console.log('📤 Sending email...');
-    const sendPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Email send timeout (15s)')), 15000)
-    );
-    const info = await Promise.race([sendPromise, timeoutPromise]);
+    const info = await transporter.sendMail(mailOptions);
     
     console.log('✅ Contact email sent successfully!');
     console.log('   Message ID:', info.messageId);
