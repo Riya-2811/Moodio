@@ -67,7 +67,7 @@ const Footer = () => {
               Have questions or feedback? We'd love to hear from you!
             </p>
             <Link
-              to="/contact"
+              to="/contact#contact-form"
               className="inline-block px-4 py-2 rounded-soft bg-sky-blue dark:bg-dark-bg text-gray-800 dark:text-gray-200 hover:bg-calm-purple dark:hover:bg-accent-blue transition-all duration-300 text-sm font-medium"
             >
               Contact Us

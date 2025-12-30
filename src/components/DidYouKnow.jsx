@@ -123,11 +123,11 @@ const DidYouKnow = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-warm-pink/40 via-calm-purple/30 to-soft-green/40 dark:from-purple-600/20 dark:via-accent-blue/20 dark:to-green-500/20 rounded-softer p-6 md:p-8 shadow-lg border-2 border-calm-purple/30 dark:border-accent-blue/40 transition-all duration-300 hover:shadow-xl">
+    <div className="bg-gradient-to-br from-sky-blue/50 via-calm-purple/40 to-accent-blue/30 dark:from-accent-blue/25 dark:via-purple-600/25 dark:to-cyan-500/20 rounded-softer p-6 md:p-8 shadow-lg border-2 border-sky-blue/40 dark:border-accent-blue/50 transition-all duration-300 hover:shadow-xl">
       <div className="flex items-start gap-4">
         {/* Icon */}
         <div className="flex-shrink-0 mt-1">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-calm-purple to-warm-pink dark:from-accent-blue dark:to-purple-600 flex items-center justify-center text-2xl shadow-md">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-blue to-accent-blue dark:from-accent-blue dark:to-cyan-500 flex items-center justify-center text-2xl shadow-md">
             💡
           </div>
         </div>
@@ -150,4 +150,5 @@ const DidYouKnow = () => {
 };
 
 export default DidYouKnow;
+
 

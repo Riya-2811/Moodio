@@ -30,6 +30,7 @@ const EmotionDetector = () => {
   const [error, setError] = useState(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   /**
    * Map face-api.js emotions to our mood types
@@ -360,6 +361,24 @@ const EmotionDetector = () => {
     };
   }, []);
 
+  // Automatically show suggestions for negative moods after detection result (after 2.5 seconds)
+  useEffect(() => {
+    if (finalMood && !showSuggestions) {
+      // Define negative moods that should trigger suggestions
+      const negativeMoods = ['sad', 'angry', 'stressed', 'anxious', 'tired', 'lonely', 'overwhelmed'];
+      const isNegativeMood = negativeMoods.includes(finalMood.mood);
+      
+      if (isNegativeMood) {
+        const timer = setTimeout(() => {
+          setShowSuggestions(true);
+        }, 2500); // Show suggestions after 2.5 seconds for negative moods
+        return () => clearTimeout(timer);
+      }
+    } else if (!finalMood) {
+      setShowSuggestions(false);
+    }
+  }, [finalMood, showSuggestions]);
+
   return (
     <div className="min-h-screen bg-calm-purple dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8 transition-all duration-300">
       <div className="max-w-5xl mx-auto">
@@ -442,9 +461,9 @@ const EmotionDetector = () => {
             </div>
           )}
 
-          {/* Final Verdict Display */}
-          {finalMood && (
-            <div className="mt-4 p-6 rounded-soft bg-gradient-to-br from-soft-green to-calm-purple dark:bg-dark-surface text-center animate-pulse">
+          {/* Final Verdict Display - Shown first, then replaced by suggestions for negative moods */}
+          {finalMood && !showSuggestions && (
+            <div className="mt-4 p-6 rounded-soft bg-gradient-to-br from-soft-green to-calm-purple dark:bg-dark-surface text-center relative z-10">
               <div className="text-7xl mb-4 animate-bounce">
                 {getMoodEmoji(finalMood.mood)}
               </div>
@@ -511,11 +530,12 @@ const EmotionDetector = () => {
           </ul>
         </div>
 
-        {/* Smart Suggestions */}
-        {finalMood && (
+        {/* Smart Suggestions - Replaces detection result for negative moods after 2.5 seconds */}
+        {finalMood && showSuggestions && (
           <SmartSuggestions
             detectedMood={finalMood}
-            onClose={() => setFinalMood(null)}
+            onClose={() => setShowSuggestions(false)}
+            sideBySide={false}
           />
         )}
 

@@ -12,6 +12,7 @@ const WebcamModal = ({ onClose, forceShow = false, onMoodDetected }) => {
   const [startDetection, setStartDetection] = useState(false);
   const [detectedMood, setDetectedMood] = useState(null);
   const [initializationError, setInitializationError] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const { showToast, ToastContainer } = useToast();
 
   // Auto-show modal on mount (first visit) - appears 1 second after landing
@@ -30,6 +31,24 @@ const WebcamModal = ({ onClose, forceShow = false, onMoodDetected }) => {
       return () => clearTimeout(timer);
     }
   }, [forceShow]);
+
+  // Automatically show suggestions for negative moods after detection result (after 2.5 seconds)
+  useEffect(() => {
+    if (detectedMood && !showSuggestions) {
+      // Define negative moods that should trigger suggestions
+      const negativeMoods = ['sad', 'angry', 'stressed', 'anxious', 'tired', 'lonely', 'overwhelmed'];
+      const isNegativeMood = negativeMoods.includes(detectedMood.mood);
+      
+      if (isNegativeMood) {
+        const timer = setTimeout(() => {
+          setShowSuggestions(true);
+        }, 2500); // Show suggestions after 2.5 seconds for negative moods
+        return () => clearTimeout(timer);
+      }
+    } else if (!detectedMood) {
+      setShowSuggestions(false);
+    }
+  }, [detectedMood, showSuggestions]);
 
   /**
    * Handle starting detection
@@ -178,12 +197,16 @@ const WebcamModal = ({ onClose, forceShow = false, onMoodDetected }) => {
                         setInitializationError('Unable to start camera. Please refresh the page and try again.');
                       }}
                     />
-                    {detectedMood && (
-                      <SmartSuggestions
-                        detectedMood={detectedMood}
-                        onClose={() => setDetectedMood(null)}
-                      />
-                    )}
+                     {detectedMood && showSuggestions && (
+                       <SmartSuggestions
+                         detectedMood={detectedMood}
+                         onClose={() => {
+                           setShowSuggestions(false);
+                           handleClose();
+                         }}
+                         sideBySide={false}
+                       />
+                     )}
                     <ToastContainer />
                   </div>
                 )}

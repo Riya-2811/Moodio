@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useToast } from '../utils/Toast';
 import { submitContactForm } from '../api/contact';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +14,19 @@ const Contact = () => {
   const { showToast, ToastContainer } = useToast();
   const { user, preferences } = useAuth();
   const { lastMood } = useMood();
+  const location = useLocation();
+
+  // Scroll to contact form if hash is present or on mount (for navigation from footer)
+  useEffect(() => {
+    if (location.hash === '#contact-form' || window.location.hash === '#contact-form') {
+      setTimeout(() => {
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+          contactForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [location]);
 
   // Start consecutive notifications system (every 2 minutes)
   useEffect(() => {
@@ -116,7 +130,7 @@ const Contact = () => {
         </div>
 
         {/* Contact Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div id="contact-form" className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 scroll-mt-20">
           {/* Message Form Card */}
           <div className="bg-white dark:bg-dark-surface rounded-softer p-8 shadow-lg">
             <div className="text-center mb-6">

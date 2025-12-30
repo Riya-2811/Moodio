@@ -75,3 +75,4 @@ The API configuration now:
 
 **The code fix is done! You just need to rebuild your frontend on Render to apply the changes.**
 
+

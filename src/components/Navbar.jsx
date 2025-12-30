@@ -12,6 +12,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileUserMenu, setShowMobileUserMenu] = useState(false);
 
   // Toggle mobile menu
   const toggleMenu = () => {
@@ -222,6 +223,60 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden pb-4 space-y-3">
+            {/* User Section - Moved to Top for Mobile */}
+            {user ? (
+              <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 mb-2 pb-3">
+                <button
+                  onClick={() => setShowMobileUserMenu(!showMobileUserMenu)}
+                  className="w-full flex items-center justify-between text-sm font-semibold text-gray-800 dark:text-gray-100 hover:text-calm-purple dark:hover:text-accent-blue transition-colors"
+                >
+                  <span>Hi, {user.name} 👋</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${showMobileUserMenu ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {/* Dropdown Menu - Profile and Logout */}
+                {showMobileUserMenu && (
+                  <div className="mt-2 space-y-1 transition-all duration-200 ease-in-out">
+                    <Link
+                      to="/profile"
+                      onClick={() => {
+                        toggleMenu();
+                        setShowMobileUserMenu(false);
+                      }}
+                      className="block w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors py-1 pl-4"
+                    >
+                      👤 Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        toggleMenu();
+                        setShowMobileUserMenu(false);
+                      }}
+                      className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors py-1 pl-4"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="block text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors px-4 py-2 border-b border-gray-200 dark:border-gray-700 mb-2 pb-3"
+                onClick={toggleMenu}
+              >
+                Login
+              </Link>
+            )}
+            
             <NavLink
               to="/"
               end
@@ -301,37 +356,6 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             >
               Therapist
             </NavLink>
-            {user ? (
-              <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 mt-2">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">
-                  Hi, {user.name} 👋
-                </p>
-                <Link
-                  to="/profile"
-                  onClick={toggleMenu}
-                  className="block w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors mb-1"
-                >
-                  👤 Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    toggleMenu();
-                  }}
-                  className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="block text-gray-700 dark:text-gray-300 hover:text-calm-purple dark:hover:text-accent-blue transition-colors px-4 py-2 border-t border-gray-200 dark:border-gray-700 mt-2"
-                onClick={toggleMenu}
-              >
-                Login
-              </Link>
-            )}
             <button
               onClick={() => {
                 toggleDarkMode();
