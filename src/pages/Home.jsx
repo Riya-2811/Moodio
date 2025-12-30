@@ -197,11 +197,11 @@ const Home = () => {
         </div>
 
         {/* Decorative wave or pattern can go here */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-white dark:bg-dark-surface"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-white dark:bg-dark-surface"></div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white dark:bg-dark-surface transition-all duration-300">
+      <section id="features" className="py-12 bg-white dark:bg-dark-surface transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-12 text-gray-800 dark:text-gray-100">
             What Makes Moodio Special
