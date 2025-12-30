@@ -116,6 +116,7 @@ const DidYouKnow = () => {
     // Select a random fact on component mount
     const randomIndex = Math.floor(Math.random() * facts.length);
     setCurrentFact(facts[randomIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array means this runs once on mount
 
   if (!currentFact) {

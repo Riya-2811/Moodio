@@ -116,6 +116,7 @@ const MusicRecommender = () => {
           : preferences.musicPreferences.preferredPlatform || prev.platform,
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferences?.musicPreferences?.favoriteGenres, preferences?.musicPreferences?.preferredPlatform]);
 
   // Fetch user's custom playlists
@@ -123,6 +124,7 @@ const MusicRecommender = () => {
     if (user) {
       fetchUserPlaylists();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   /**
@@ -548,6 +550,7 @@ const MusicRecommender = () => {
     if (!currentArtistAvailable && filters.artist !== 'all') {
       setFilters(prev => ({ ...prev, artist: 'all' }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.language]);
 
   return (

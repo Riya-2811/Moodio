@@ -5,14 +5,19 @@ When accessing routes like `/login` directly, you get a 404 error because the se
 
 ## Solution
 
-### ✅ Option 1: Use _redirects File (Recommended)
+### ✅ CRITICAL FIX: _redirects File Must Be in Build Root
 
-The `_redirects` file in the `public` folder should work automatically. It contains:
-```
-/* /index.html 200
-```
+The `_redirects` file must be in the `build` folder root for Render to use it. 
 
-**This file gets copied to the build folder and Render should use it automatically.**
+**Current Status:**
+- ✅ `public/_redirects` exists with: `/* /index.html 200`
+- ✅ `build/_redirects` exists with: `/* /index.html 200`
+
+**After deployment, verify:**
+1. The `_redirects` file is in the deployed build folder
+2. Format is exactly: `/* /index.html 200` (no extra spaces)
+
+**If still not working**, you may need to manually configure redirects in Render dashboard or contact Render support.
 
 ### Option 2: Verify _redirects File
 

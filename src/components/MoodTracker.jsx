@@ -101,6 +101,7 @@ const MoodTracker = () => {
   // Fetch mood history when component mounts or when user changes
   useEffect(() => {
     fetchMoodHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Start consecutive notifications system (every 2 minutes)

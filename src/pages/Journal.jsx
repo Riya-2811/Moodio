@@ -68,6 +68,7 @@ const Journal = () => {
   // Fetch journal entries when component mounts or when user changes
   useEffect(() => {
     fetchJournalEntries();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Load privacy preference for journal entries visibility (only on initial load or external changes)

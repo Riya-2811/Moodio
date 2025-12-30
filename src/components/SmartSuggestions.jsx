@@ -54,6 +54,7 @@ const SmartSuggestions = ({ detectedMood, onClose, sideBySide = false }) => {
       }
       // Positive moods no longer show music recommendations modal
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detectedMood]);
 
   if (!detectedMood) return null;

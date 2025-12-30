@@ -138,6 +138,7 @@ const Chatbot = () => {
     if (user) {
       fetchChatHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   /**

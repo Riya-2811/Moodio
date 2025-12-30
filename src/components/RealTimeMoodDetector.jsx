@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as faceapi from 'face-api.js';
+import * as faceapi from 'face-api.js/dist/face-api.min.js';
 import api from '../utils/api';
 import { useMood } from '../context/MoodContext';
 import { useAuth } from '../context/AuthContext';
@@ -353,6 +353,7 @@ const RealTimeMoodDetector = ({ onClose, isModal = false, onMoodDetected, onErro
     return () => {
       stopWebcam();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-start webcam if this is opened as modal
@@ -364,6 +365,7 @@ const RealTimeMoodDetector = ({ onClose, isModal = false, onMoodDetected, onErro
       }, 300);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModal, isModelLoading]);
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as faceapi from 'face-api.js';
+import * as faceapi from 'face-api.js/dist/face-api.min.js';
 import api from '../utils/api';
 import SmartSuggestions from './SmartSuggestions';
 import { useToast } from '../utils/Toast';
