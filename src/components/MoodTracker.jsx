@@ -25,6 +25,7 @@ const MoodTracker = () => {
   const [message, setMessage] = useState('');
   const [moodHistory, setMoodHistory] = useState([]);
   const [showDetectorModal, setShowDetectorModal] = useState(false);
+  const [detectedMood, setDetectedMood] = useState(null);
   const [manualMood, setManualMood] = useState(null);
   const [isClearing, setIsClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
