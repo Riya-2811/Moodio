@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as faceapi from 'face-api.js/dist/face-api.min.js';
+import * as faceapi from 'face-api.js';
 import api from '../utils/api';
 import { useMood } from '../context/MoodContext';
 import { useAuth } from '../context/AuthContext';
