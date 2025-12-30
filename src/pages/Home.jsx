@@ -90,6 +90,20 @@ const Home = () => {
     }
   };
 
+  /**
+   * Handle smooth scroll to about section
+   */
+  const handleLearnMoreClick = (e) => {
+    e.preventDefault();
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
   return (
     <div id="home" className="min-h-screen">
       {/* Webcam Modal - Auto-shows on first visit (1 second after landing) */}
@@ -172,12 +186,12 @@ const Home = () => {
               >
                 Explore Features
               </button>
-              <a
-                href="#about"
-                className="px-8 py-4 rounded-softer bg-white dark:bg-dark-surface text-gray-800 dark:text-gray-200 font-semibold hover:bg-light-gray dark:hover:bg-dark-bg transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-gray-200 dark:border-gray-700"
+              <button
+                onClick={handleLearnMoreClick}
+                className="px-8 py-4 rounded-softer bg-white dark:bg-dark-surface text-gray-800 dark:text-gray-200 font-semibold hover:bg-light-gray dark:hover:bg-dark-bg transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-gray-200 dark:border-gray-700 cursor-pointer"
               >
                 Learn More
-              </a>
+              </button>
             </div>
           </div>
         </div>
