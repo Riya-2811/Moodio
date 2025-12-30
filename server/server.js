@@ -55,13 +55,12 @@ app.use(express.urlencoded({ extended: true }));
 // Static file serving removed to prevent %PUBLIC_URL% errors
 
 // Handle any path containing %PUBLIC_URL% (React build placeholders) - must be early
+// Return 204 No Content to prevent 400/404 errors from malformed URLs
 app.use((req, res, next) => {
-  if (req.path.includes('%PUBLIC_URL%') || req.path.includes('PUBLIC_URL')) {
-    return res.status(404).json({
-      error: "Resource not found",
-      message: "This is the backend API server. Frontend assets are served at https://moodio-10.onrender.com",
-      path: req.path,
-    });
+  const rawUrl = req.originalUrl || req.url;
+  if (rawUrl.includes('%PUBLIC_URL%') || rawUrl.includes('PUBLIC_URL') || 
+      req.path.includes('%PUBLIC_URL%') || req.path.includes('PUBLIC_URL')) {
+    return res.status(204).end(); // No Content - browser won't show error
   }
   next();
 });
