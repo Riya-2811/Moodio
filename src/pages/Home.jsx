@@ -76,6 +76,20 @@ const Home = () => {
     setShowMoodModal(true);
   };
 
+  /**
+   * Handle smooth scroll to features section
+   */
+  const handleExploreFeaturesClick = (e) => {
+    e.preventDefault();
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
   return (
     <div id="home" className="min-h-screen">
       {/* Webcam Modal - Auto-shows on first visit (1 second after landing) */}
@@ -152,12 +166,12 @@ const Home = () => {
 
             {/* Call-to-Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a
-                href="#features"
-                className="px-8 py-4 rounded-softer bg-calm-purple text-white font-semibold hover:bg-warm-pink dark:bg-accent-blue dark:hover:bg-accent-blue/80 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              <button
+                onClick={handleExploreFeaturesClick}
+                className="px-8 py-4 rounded-softer bg-calm-purple text-white font-semibold hover:bg-warm-pink dark:bg-accent-blue dark:hover:bg-accent-blue/80 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 cursor-pointer"
               >
                 Explore Features
-              </a>
+              </button>
               <a
                 href="#about"
                 className="px-8 py-4 rounded-softer bg-white dark:bg-dark-surface text-gray-800 dark:text-gray-200 font-semibold hover:bg-light-gray dark:hover:bg-dark-bg transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-gray-200 dark:border-gray-700"
