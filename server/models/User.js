@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     sparse: true, // Allows multiple null/undefined values
     trim: true,
     lowercase: true,
-    default: '',
+    // Don't set default - leave undefined if not provided (sparse index allows this)
   },
   name: {
     type: String,

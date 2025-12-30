@@ -36,11 +36,32 @@ router.get('/', async (req, res) => {
         name: req.query.name || 'User',
       };
       // Only add email if it's provided and not empty (to avoid unique constraint issues)
+      // Don't set email field at all if empty (sparse index allows undefined/null)
       if (req.query.email && req.query.email.trim()) {
         userData.email = req.query.email.trim().toLowerCase();
       }
+      // Don't set email field if empty - leave it undefined
       user = new User(userData);
-      await user.save();
+      try {
+        await user.save();
+      } catch (saveError) {
+        // Handle duplicate key error - try to find existing user
+        if (saveError.code === 11000) {
+          // Duplicate key error - try to find by userId first, then by email if provided
+          user = await User.findOne({ userId });
+          if (!user && userData.email) {
+            user = await User.findOne({ email: userData.email });
+          }
+          if (!user) {
+            // If we still can't find the user, it's a real error
+            console.error('Duplicate key error but user not found:', saveError);
+            throw saveError;
+          }
+          // User found - continue with existing user
+        } else {
+          throw saveError; // Re-throw if it's not a duplicate key error
+        }
+      }
     }
 
     res.status(200).json({
@@ -153,14 +174,39 @@ const updateUserPreferences = async (req, res) => {
         name: name || 'User',
       };
       // Only add email if it's provided and not empty (to avoid unique constraint issues)
+      // Don't set email field at all if empty (sparse index allows undefined/null)
       if (email && email.trim()) {
         userData.email = email.trim().toLowerCase();
       }
+      // Don't set email field if empty - leave it undefined
       user = new User(userData);
+      try {
+        await user.save();
+      } catch (saveError) {
+        // Handle duplicate key error - try to find existing user
+        if (saveError.code === 11000) {
+          // Duplicate key error - try to find by userId first, then by email if provided
+          user = await User.findOne({ userId });
+          if (!user && userData.email) {
+            user = await User.findOne({ email: userData.email });
+          }
+          if (!user) {
+            // If we still can't find the user, it's a real error
+            console.error('Duplicate key error but user not found:', saveError);
+            throw saveError;
+          }
+          // User found - continue with existing user
+        } else {
+          throw saveError; // Re-throw if it's not a duplicate key error
+        }
+      }
     } else {
       // Update basic info if provided
       if (email && email.trim()) {
         user.email = email.trim().toLowerCase();
+      } else if (email === '' || email === null) {
+        // Remove email if explicitly set to empty/null
+        user.email = undefined;
       }
       if (name && name.trim()) {
         user.name = name.trim();
@@ -316,14 +362,39 @@ router.put('/:userId', async (req, res) => {
         name: name || 'User',
       };
       // Only add email if it's provided and not empty (to avoid unique constraint issues)
+      // Don't set email field at all if empty (sparse index allows undefined/null)
       if (email && email.trim()) {
         userData.email = email.trim().toLowerCase();
       }
+      // Don't set email field if empty - leave it undefined
       user = new User(userData);
+      try {
+        await user.save();
+      } catch (saveError) {
+        // Handle duplicate key error - try to find existing user
+        if (saveError.code === 11000) {
+          // Duplicate key error - try to find by userId first, then by email if provided
+          user = await User.findOne({ userId });
+          if (!user && userData.email) {
+            user = await User.findOne({ email: userData.email });
+          }
+          if (!user) {
+            // If we still can't find the user, it's a real error
+            console.error('Duplicate key error but user not found:', saveError);
+            throw saveError;
+          }
+          // User found - continue with existing user
+        } else {
+          throw saveError; // Re-throw if it's not a duplicate key error
+        }
+      }
     } else {
       // Update basic info if provided
       if (email && email.trim()) {
         user.email = email.trim().toLowerCase();
+      } else if (email === '' || email === null) {
+        // Remove email if explicitly set to empty/null
+        user.email = undefined;
       }
       if (name && name.trim()) {
         user.name = name.trim();

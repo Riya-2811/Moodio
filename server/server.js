@@ -85,10 +85,7 @@ if (!MONGODB_URI) {
   console.warn("⚠️  No MONGODB_URI provided.");
 } else {
   mongoose
-    .connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    })
+    .connect(MONGODB_URI)
     .then(() => console.log("✅ Connected to MongoDB"))
     .catch((err) =>
       console.error("❌ MongoDB connection error:", err.message)
