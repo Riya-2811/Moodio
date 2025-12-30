@@ -170,7 +170,6 @@ const Journal = () => {
     setIsSavingPrivacy(true);
     
     try {
-      const userId = user.id || user.userId || user.email;
       const privacyData = {
         journalPreferences: {
           showPreviousEntries: newVisibility,

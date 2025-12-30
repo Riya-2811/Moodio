@@ -29,7 +29,6 @@ const RealTimeMoodDetector = ({ onClose, isModal = false, onMoodDetected, onErro
   const [error, setError] = useState(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [detectionStarted, setDetectionStarted] = useState(false);
 
   /**
    * Map face-api.js emotions to our mood types
@@ -42,25 +41,6 @@ const RealTimeMoodDetector = ({ onClose, isModal = false, onMoodDetected, onErro
     fearful: 'anxious',
     surprised: 'excited',
     neutral: 'calm',
-  };
-
-  /**
-   * Map moods to redirect destinations
-   */
-  const getRedirectPath = (mood) => {
-    switch (mood) {
-      case 'sad':
-      case 'angry':
-      case 'anxious':
-        return '/exercises';
-      case 'happy':
-      case 'excited':
-        return '/music';
-      case 'calm':
-      case 'neutral':
-      default:
-        return null;
-    }
   };
 
   /**
@@ -299,7 +279,6 @@ const RealTimeMoodDetector = ({ onClose, isModal = false, onMoodDetected, onErro
     setIsDetecting(true);
     setError(null);
     setProgress(0);
-    setDetectionStarted(true);
     detectionFramesRef.current = [];
 
     // Progress bar animation - reaches 100% in 10 seconds

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useMood } from '../context/MoodContext';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,6 @@ const MusicRecommender = () => {
   const { showToast, ToastContainer } = useToast();
   const [latestMood, setLatestMood] = useState('happy');
   const [userPlaylists, setUserPlaylists] = useState([]);
-  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAddSongsModal, setShowAddSongsModal] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
@@ -36,7 +35,6 @@ const MusicRecommender = () => {
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendationsError, setRecommendationsError] = useState(null);
-  const [hasPreferences, setHasPreferences] = useState(false);
   // Initialize filters with 'all' to show all recommendations by default
   // User can filter later if they want
   const [filters, setFilters] = useState({
@@ -131,7 +129,6 @@ const MusicRecommender = () => {
   const fetchMusicRecommendations = useCallback(async () => {
     if (!user) {
       setMusicRecommendations([]);
-      setHasPreferences(false);
       setLoadingRecommendations(false);
       return;
     }
@@ -152,8 +149,6 @@ const MusicRecommender = () => {
         console.log('[MusicRecommender] Received recommendations:', recommendations.length);
         console.log('[MusicRecommender] Sample recommendations:', recommendations.slice(0, 3));
         setMusicRecommendations(recommendations);
-        setHasPreferences(response.data.data.hasPreferences || false);
-        
         if (!response.data.data.hasPreferences) {
           // If no preferences but we have recommendations, don't show error
           if (recommendations.length > 0) {
@@ -169,14 +164,12 @@ const MusicRecommender = () => {
       } else {
         console.error('[MusicRecommender] API response not successful:', response.data);
         setMusicRecommendations([]);
-        setHasPreferences(false);
         setRecommendationsError('api_error');
       }
     } catch (error) {
       console.error('Error fetching music recommendations:', error);
       console.error('Error details:', error.response?.data || error.message);
       setMusicRecommendations([]);
-      setHasPreferences(false);
       setRecommendationsError('api_error');
     } finally {
       setLoadingRecommendations(false);
@@ -191,7 +184,6 @@ const MusicRecommender = () => {
       fetchMusicRecommendations();
     } else {
       setMusicRecommendations([]);
-      setHasPreferences(false);
       setRecommendationsError(null);
     }
   }, [user, latestMood, preferences, fetchMusicRecommendations]);

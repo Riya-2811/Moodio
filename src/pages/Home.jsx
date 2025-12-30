@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import WebcamModal from '../components/WebcamModal';
 import ThoughtOfTheDay from '../components/ThoughtOfTheDay';
 import DidYouKnow from '../components/DidYouKnow';
 import FloatingCameraButton from '../components/FloatingCameraButton';
 import CuteAssistant from '../components/CuteAssistant';
-import Logo from '../components/Logo';
 import { useToast } from '../utils/Toast';
 import { useAuth } from '../context/AuthContext';
 import { useMood } from '../context/MoodContext';
@@ -24,7 +23,6 @@ const Home = () => {
   const { user, preferences } = useAuth();
   const { lastMood } = useMood();
   const [showMoodModal, setShowMoodModal] = useState(false);
-  const navigate = useNavigate();
 
   // Show personalized daily notification on mount (respects user preferences)
   useEffect(() => {
@@ -33,7 +31,7 @@ const Home = () => {
     
     const timer = setTimeout(() => {
       // Show personalized daily notification based on last mood
-      const message = showDailyNotification(showToast, preferences, lastMood);
+      showDailyNotification(showToast, preferences, lastMood);
       // showDailyNotification already calls showToast internally
     }, 120000); // Wait 2 minutes after page load
 

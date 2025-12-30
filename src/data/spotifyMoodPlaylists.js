@@ -3,7 +3,7 @@
  * Unique playlist recommendations for each mood based on Spotify search queries
  */
 
-import { getSpotifySearchQuery, getSpotifySearchUrl } from '../utils/spotifyMoodMapping';
+import { getSpotifySearchUrl } from '../utils/spotifyMoodMapping';
 
 /**
  * Generate mood-specific Spotify playlist recommendations

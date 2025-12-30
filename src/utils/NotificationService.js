@@ -815,6 +815,7 @@ export const startConsecutiveNotifications = (showToast, preferences = null, las
   };
 };
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   hasNotificationBeenShown,
   markNotificationAsShown,

@@ -6,7 +6,7 @@ import { useToast } from '../utils/Toast';
 import api from '../utils/api';
 import { startConsecutiveNotifications } from '../utils/NotificationService';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Line, Doughnut } from 'react-chartjs-2';
 
 // Register Chart.js components
 ChartJS.register(

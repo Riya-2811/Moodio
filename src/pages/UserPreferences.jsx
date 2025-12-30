@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
  */
 const UserPreferences = () => {
   const navigate = useNavigate();
-  const { user, updatePreferences } = useAuth();
+  const { updatePreferences } = useAuth();
   
   // Form state
   const [musicGenres, setMusicGenres] = useState([]);

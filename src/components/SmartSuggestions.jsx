@@ -86,7 +86,6 @@ const SmartSuggestions = ({ detectedMood, onClose, sideBySide = false }) => {
       {moodHistory.length > 0 && (() => {
         // Calculate mood statistics
         const moodCounts = {};
-        const recentMoods = moodHistory.slice(0, 7); // Last 7 entries
         const allMoods = moodHistory;
         
         // Count each mood type
