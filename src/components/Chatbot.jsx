@@ -66,12 +66,12 @@ const Chatbot = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentNickname, setCurrentNickname] = useState('');
-  const messagesEndRef = useRef(null);
   const [chatHistory, setChatHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const messagesContainerRef = useRef(null);
 
   // Set a random nickname based on user's gender when component mounts
   useEffect(() => {
@@ -82,9 +82,16 @@ const Chatbot = () => {
     }
   }, [preferences, currentNickname]);
 
+  // Scroll to bottom when messages change - using stable scroll method
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
+    }
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (messages.length === 0 && currentNickname) {
@@ -269,7 +276,14 @@ const Chatbot = () => {
         </div>
 
         <div className="bg-white dark:bg-dark-surface rounded-softer shadow-lg overflow-hidden flex flex-col" style={{ height: '600px' }}>
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-dark-bg">
+          <div 
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-dark-bg"
+            style={{ 
+              scrollBehavior: 'smooth',
+              overscrollBehavior: 'contain'
+            }}
+          >
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -329,8 +343,6 @@ const Chatbot = () => {
                 </div>
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSendMessage} className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-dark-surface">
