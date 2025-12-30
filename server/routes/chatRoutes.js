@@ -143,7 +143,17 @@ OBJECTIVE: Feel like a real friend who cares, talks normally, and responds intel
 
     return response.data.choices[0].message.content.trim();
   } catch (error) {
-    console.error('OpenAI API Error:', error.response?.data || error.message);
+    // Suppress excessive error logging for invalid API keys
+    if (error.response?.status === 401) {
+      console.error('OpenAI API Error: Invalid API key or unauthorized. Please check OPENAI_API_KEY environment variable.');
+    } else if (error.response?.status) {
+      // Log only essential error info for other HTTP errors
+      const errorMsg = error.response?.data?.error?.message || error.message;
+      console.error(`OpenAI API Error (${error.response.status}):`, errorMsg);
+    } else {
+      // Network or other errors
+      console.error('OpenAI API Error:', error.message);
+    }
     throw error;
   }
 };

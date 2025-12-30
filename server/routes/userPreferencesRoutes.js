@@ -47,15 +47,46 @@ router.get('/', async (req, res) => {
       } catch (saveError) {
         // Handle duplicate key error - try to find existing user
         if (saveError.code === 11000) {
-          // Duplicate key error - try to find by userId first, then by email if provided
+          // Duplicate key error - try to find by userId (most reliable)
           user = await User.findOne({ userId });
+          
+          // If not found by userId, try by email if provided
           if (!user && userData.email) {
             user = await User.findOne({ email: userData.email });
           }
+          
+          // If still not found and error is about null email, try to find any user with null/undefined email  
+          if (!user && saveError.keyPattern?.email) {
+            // Try finding user by userId one more time (handles race conditions)
+            user = await User.findOne({ userId });
+            if (!user) {
+              // If user still doesn't exist, it's a race condition - find any user with null email
+              user = await User.findOne({ 
+                $or: [
+                  { email: null },
+                  { email: { $exists: false } }
+                ]
+              });
+            }
+          }
+          
           if (!user) {
-            // If we still can't find the user, it's a real error
-            console.error('Duplicate key error but user not found:', saveError);
-            throw saveError;
+            // Final attempt: retry without email field (handles edge cases with null email duplicates)
+            console.warn(`Duplicate key error for userId: ${userId}, retrying without email field`);
+            delete userData.email; // Completely remove email field
+            user = new User(userData);
+            try {
+              await user.save();
+            } catch (retryError) {
+              // If still fails, find existing user by userId as last resort
+              const existingUser = await User.findOne({ userId });
+              if (existingUser) {
+                user = existingUser;
+              } else {
+                console.error('Failed to create user after retry:', retryError.message);
+                throw retryError;
+              }
+            }
           }
           // User found - continue with existing user
         } else {
@@ -185,15 +216,46 @@ const updateUserPreferences = async (req, res) => {
       } catch (saveError) {
         // Handle duplicate key error - try to find existing user
         if (saveError.code === 11000) {
-          // Duplicate key error - try to find by userId first, then by email if provided
+          // Duplicate key error - try to find by userId (most reliable)
           user = await User.findOne({ userId });
+          
+          // If not found by userId, try by email if provided
           if (!user && userData.email) {
             user = await User.findOne({ email: userData.email });
           }
+          
+          // If still not found and error is about null email, try to find any user with null/undefined email  
+          if (!user && saveError.keyPattern?.email) {
+            // Try finding user by userId one more time (handles race conditions)
+            user = await User.findOne({ userId });
+            if (!user) {
+              // If user still doesn't exist, it's a race condition - find any user with null email
+              user = await User.findOne({ 
+                $or: [
+                  { email: null },
+                  { email: { $exists: false } }
+                ]
+              });
+            }
+          }
+          
           if (!user) {
-            // If we still can't find the user, it's a real error
-            console.error('Duplicate key error but user not found:', saveError);
-            throw saveError;
+            // Final attempt: retry without email field (handles edge cases with null email duplicates)
+            console.warn(`Duplicate key error for userId: ${userId}, retrying without email field`);
+            delete userData.email; // Completely remove email field
+            user = new User(userData);
+            try {
+              await user.save();
+            } catch (retryError) {
+              // If still fails, find existing user by userId as last resort
+              const existingUser = await User.findOne({ userId });
+              if (existingUser) {
+                user = existingUser;
+              } else {
+                console.error('Failed to create user after retry:', retryError.message);
+                throw retryError;
+              }
+            }
           }
           // User found - continue with existing user
         } else {
@@ -373,15 +435,46 @@ router.put('/:userId', async (req, res) => {
       } catch (saveError) {
         // Handle duplicate key error - try to find existing user
         if (saveError.code === 11000) {
-          // Duplicate key error - try to find by userId first, then by email if provided
+          // Duplicate key error - try to find by userId (most reliable)
           user = await User.findOne({ userId });
+          
+          // If not found by userId, try by email if provided
           if (!user && userData.email) {
             user = await User.findOne({ email: userData.email });
           }
+          
+          // If still not found and error is about null email, try to find any user with null/undefined email  
+          if (!user && saveError.keyPattern?.email) {
+            // Try finding user by userId one more time (handles race conditions)
+            user = await User.findOne({ userId });
+            if (!user) {
+              // If user still doesn't exist, it's a race condition - find any user with null email
+              user = await User.findOne({ 
+                $or: [
+                  { email: null },
+                  { email: { $exists: false } }
+                ]
+              });
+            }
+          }
+          
           if (!user) {
-            // If we still can't find the user, it's a real error
-            console.error('Duplicate key error but user not found:', saveError);
-            throw saveError;
+            // Final attempt: retry without email field (handles edge cases with null email duplicates)
+            console.warn(`Duplicate key error for userId: ${userId}, retrying without email field`);
+            delete userData.email; // Completely remove email field
+            user = new User(userData);
+            try {
+              await user.save();
+            } catch (retryError) {
+              // If still fails, find existing user by userId as last resort
+              const existingUser = await User.findOne({ userId });
+              if (existingUser) {
+                user = existingUser;
+              } else {
+                console.error('Failed to create user after retry:', retryError.message);
+                throw retryError;
+              }
+            }
           }
           // User found - continue with existing user
         } else {
