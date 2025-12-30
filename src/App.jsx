@@ -66,6 +66,17 @@ function AppContent() {
   // Hide navbar and footer on login, signup, forgot-password, and preferences pages
   const hideNavbarFooter = location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/forgot-password' || location.pathname === '/preferences';
 
+  // Scroll to top on route change - ensures all pages start at the top
+  useEffect(() => {
+    // Scroll to top whenever pathname changes (new page loaded)
+    // Use 'auto' for instant scroll without animation
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+  }, [location.pathname]); // Only trigger on pathname change (new page), not hash change
+
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen flex flex-col bg-sky-blue dark:bg-dark-bg transition-all duration-300">
