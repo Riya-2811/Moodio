@@ -149,20 +149,26 @@ try {
    These prevent 404 errors when browsers try to load favicon, manifest, etc.
 ------------------------------------------------------------------ */
 
+// Handle frontend static asset requests gracefully (return 204 to prevent console errors)
 app.get("/favicon.ico", (req, res) => {
-  res.status(204).end(); // No content
+  res.status(204).end(); // No content - prevents console errors
 });
 
 app.get("/favicon.svg", (req, res) => {
-  res.status(204).end(); // No content
+  res.status(204).end(); // No content - prevents console errors
 });
 
 app.get("/manifest.json", (req, res) => {
-  res.status(204).end(); // No content
+  res.status(204).end(); // No content - prevents console errors
 });
 
 app.get("/robots.txt", (req, res) => {
-  res.status(204).end(); // No content
+  res.status(204).end(); // No content - prevents console errors
+});
+
+// Handle any other static asset requests that might come from frontend
+app.get(/\.(ico|svg|png|jpg|jpeg|gif|webp|json|txt)$/, (req, res) => {
+  res.status(204).end(); // No content - prevents console errors
 });
 
 /* ------------------------------------------------------------------

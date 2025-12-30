@@ -21,6 +21,7 @@ const MusicRecommender = () => {
   const { showToast, ToastContainer } = useToast();
   const [latestMood, setLatestMood] = useState('happy');
   const [userPlaylists, setUserPlaylists] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAddSongsModal, setShowAddSongsModal] = useState(false);
