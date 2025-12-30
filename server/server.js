@@ -18,7 +18,8 @@ const PORT = process.env.PORT || 5000;
 ------------------------------------------------------------------ */
 
 const allowedOrigins = [
-  "https://moodio-frontend.onrender.com",     // your new frontend
+  "https://moodio-25.onrender.com",           // new frontend
+  "https://moodio-frontend.onrender.com",     // alternative frontend
   "https://moodio-10.onrender.com",           // old frontend if needed
   "http://localhost:3000",
   "http://localhost:3001",
@@ -203,7 +204,7 @@ app.get("/", (req, res) => {
       contact: "/api/contact",
       therapist: "/api/therapist",
     },
-    note: "This is the backend API. Frontend is available at https://moodio-10.onrender.com",
+    note: "This is the backend API. Frontend is available at https://moodio-25.onrender.com",
   });
 });
 
@@ -215,7 +216,7 @@ app.use((req, res) => {
   if (!req.path.startsWith("/api")) {
     res.status(404).json({
       error: "Not Found",
-      message: "This is the backend API server. The frontend is available at https://moodio-10.onrender.com",
+      message: "This is the backend API server. The frontend is available at https://moodio-25.onrender.com",
       path: req.path,
     });
   } else {
