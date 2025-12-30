@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaFacebook, FaInstagram } from 'react-icons/fa';
 
 /**
@@ -8,6 +8,48 @@ import { FaFacebook, FaInstagram } from 'react-icons/fa';
  */
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  /**
+   * Handle smooth scroll to section on home page
+   */
+  const handleSectionClick = (e, sectionId) => {
+    e.preventDefault();
+    
+    // Check if we're on the home page
+    const isHomePage = location.pathname === '/' || location.pathname === '';
+    
+    if (isHomePage) {
+      // If on home page, scroll smoothly to the section
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    } else {
+      // If not on home page, navigate to home first
+      navigate('/');
+      // Wait for navigation and page render to complete, then scroll
+      setTimeout(() => {
+        const scrollToSection = () => {
+          const section = document.getElementById(sectionId);
+          if (section) {
+            section.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start' 
+            });
+          } else {
+            // If section not found yet, try again after a short delay
+            setTimeout(scrollToSection, 50);
+          }
+        };
+        scrollToSection();
+      }, 300);
+    }
+  };
 
   return (
     <footer className="bg-white dark:bg-dark-surface text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700 transition-all duration-300">
@@ -29,22 +71,22 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#features"
-                  className="text-gray-600 dark:text-gray-400 hover:text-calm-purple dark:hover:text-accent-blue transition-colors duration-200 flex items-center group"
+                <button
+                  onClick={(e) => handleSectionClick(e, 'features')}
+                  className="text-gray-600 dark:text-gray-400 hover:text-calm-purple dark:hover:text-accent-blue transition-colors duration-200 flex items-center group w-full text-left"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-calm-purple dark:bg-accent-blue opacity-0 group-hover:opacity-100 mr-2 transition-opacity"></span>
                   Features
-                </a>
+                </button>
               </li>
               <li>
-                <a
-                  href="#about"
-                  className="text-gray-600 dark:text-gray-400 hover:text-calm-purple dark:hover:text-accent-blue transition-colors duration-200 flex items-center group"
+                <button
+                  onClick={(e) => handleSectionClick(e, 'about')}
+                  className="text-gray-600 dark:text-gray-400 hover:text-calm-purple dark:hover:text-accent-blue transition-colors duration-200 flex items-center group w-full text-left"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-calm-purple dark:bg-accent-blue opacity-0 group-hover:opacity-100 mr-2 transition-opacity"></span>
                   About
-                </a>
+                </button>
               </li>
               <li>
                 <Link
