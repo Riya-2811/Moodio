@@ -25,6 +25,7 @@ const MoodTracker = () => {
   const [message, setMessage] = useState('');
   const [moodHistory, setMoodHistory] = useState([]);
   const [showDetectorModal, setShowDetectorModal] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [detectedMood, setDetectedMood] = useState(null);
   const [manualMood, setManualMood] = useState(null);
   const [isClearing, setIsClearing] = useState(false);

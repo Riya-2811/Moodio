@@ -5,11 +5,14 @@ When accessing routes like `/login` directly, you get a 404 error because the se
 
 ## Solution
 
-### ✅ Option 1: 404.html Fallback (Easiest - Already Added!)
+### ✅ Option 1: Use _redirects File (Recommended)
 
-A `404.html` file has been created in the `public` folder. This will automatically redirect any 404 errors to `index.html`, allowing React Router to handle the routing.
+The `_redirects` file in the `public` folder should work automatically. It contains:
+```
+/* /index.html 200
+```
 
-**This should work automatically after the next deployment!**
+**This file gets copied to the build folder and Render should use it automatically.**
 
 ### Option 2: Verify _redirects File
 
