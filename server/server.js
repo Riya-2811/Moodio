@@ -55,12 +55,21 @@ app.use(express.urlencoded({ extended: true }));
 // Static file serving removed to prevent %PUBLIC_URL% errors
 
 // Handle any path containing %PUBLIC_URL% (React build placeholders) - must be early
-// Return 204 No Content to prevent 400/404 errors from malformed URLs
+// Return proper response to prevent console errors
 app.use((req, res, next) => {
-  const rawUrl = req.originalUrl || req.url;
+  const rawUrl = decodeURIComponent(req.originalUrl || req.url);
+  const path = req.path;
+  
+  // Check if URL contains PUBLIC_URL placeholder (encoded or not)
   if (rawUrl.includes('%PUBLIC_URL%') || rawUrl.includes('PUBLIC_URL') || 
-      req.path.includes('%PUBLIC_URL%') || req.path.includes('PUBLIC_URL')) {
-    return res.status(204).end(); // No Content - browser won't show error
+      path.includes('%PUBLIC_URL%') || path.includes('PUBLIC_URL') ||
+      rawUrl.includes('%25PUBLIC_URL%25')) { // URL encoded version
+    // Return 204 No Content with proper headers to suppress browser console errors
+    res.status(204).set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Content-Type': 'text/plain'
+    }).end();
+    return;
   }
   next();
 });
@@ -149,26 +158,35 @@ try {
    These prevent 404 errors when browsers try to load favicon, manifest, etc.
 ------------------------------------------------------------------ */
 
-// Handle frontend static asset requests gracefully (return 204 to prevent console errors)
-app.get("/favicon.ico", (req, res) => {
-  res.status(204).end(); // No content - prevents console errors
+// Handle favicon requests (all variations including with query params)
+app.get(/favicon\.(ico|svg)/i, (req, res) => {
+  res.status(204).set({
+    'Cache-Control': 'public, max-age=31536000',
+    'Content-Type': req.path.toLowerCase().endsWith('.svg') ? 'image/svg+xml' : 'image/x-icon'
+  }).end();
 });
 
-app.get("/favicon.svg", (req, res) => {
-  res.status(204).end(); // No content - prevents console errors
+// Handle manifest.json requests (including with %PUBLIC_URL% in path)
+app.get(/manifest\.json/i, (req, res) => {
+  res.status(204).set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Content-Type': 'application/manifest+json'
+  }).end();
 });
 
-app.get("/manifest.json", (req, res) => {
-  res.status(204).end(); // No content - prevents console errors
-});
-
+// Handle robots.txt requests
 app.get("/robots.txt", (req, res) => {
-  res.status(204).end(); // No content - prevents console errors
+  res.status(204).set({
+    'Cache-Control': 'public, max-age=86400',
+    'Content-Type': 'text/plain'
+  }).end();
 });
 
 // Handle any other static asset requests that might come from frontend
-app.get(/\.(ico|svg|png|jpg|jpeg|gif|webp|json|txt)$/, (req, res) => {
-  res.status(204).end(); // No content - prevents console errors
+app.get(/\.(png|jpg|jpeg|gif|webp|json|txt|css|js|woff|woff2|ttf|eot)$/i, (req, res) => {
+  res.status(204).set({
+    'Cache-Control': 'public, max-age=31536000'
+  }).end();
 });
 
 /* ------------------------------------------------------------------
