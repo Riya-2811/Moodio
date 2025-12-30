@@ -79,20 +79,13 @@ const Chatbot = () => {
       const gender = preferences?.personalInfo?.gender;
       const nickname = getRandomNickname(gender);
       setCurrentNickname(nickname);
+    } else if (!currentNickname && user) {
+      // Fallback: set a default nickname if preferences aren't loaded yet
+      setCurrentNickname(getRandomNickname());
     }
-  }, [preferences, currentNickname]);
+  }, [preferences, currentNickname, user]);
 
-  // Scroll to bottom when messages change - using stable scroll method
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      const container = messagesContainerRef.current;
-      // Use requestAnimationFrame for smoother scrolling
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
-    }
-  }, [messages, isLoading]);
-
+  // Show greeting message when nickname is ready
   useEffect(() => {
     if (messages.length === 0 && currentNickname) {
       setMessages([
@@ -105,6 +98,19 @@ const Chatbot = () => {
       ]);
     }
   }, [currentNickname, messages.length]);
+
+  // Scroll to bottom when messages change - using stable scroll method
+  useEffect(() => {
+    if (messagesContainerRef.current && messages.length > 0) {
+      const container = messagesContainerRef.current;
+      // Use requestAnimationFrame with a slight delay for mobile compatibility
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight;
+        });
+      });
+    }
+  }, [messages, isLoading]);
 
   // Start consecutive notifications system (every 2 minutes)
   useEffect(() => {
@@ -261,7 +267,7 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="min-h-screen bg-warm-pink dark:bg-dark-bg transition-all duration-300 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-warm-pink dark:bg-dark-bg transition-all duration-300 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-calm-purple dark:bg-accent-blue mb-4">
@@ -275,7 +281,7 @@ const Chatbot = () => {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-dark-surface rounded-softer shadow-lg overflow-hidden flex flex-col" style={{ height: '600px' }}>
+        <div className="bg-white dark:bg-dark-surface rounded-softer shadow-lg overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px', maxHeight: '600px' }}>
           <div 
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-dark-bg"
@@ -345,22 +351,23 @@ const Chatbot = () => {
             )}
           </div>
 
-          <form onSubmit={handleSendMessage} className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-dark-surface">
-            <div className="flex gap-3">
+          <form onSubmit={handleSendMessage} className="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 bg-white dark:bg-dark-surface">
+            <div className="flex gap-2 sm:gap-3">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Type your message here..."
-                className="flex-1 px-4 py-3 rounded-soft border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-bg text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-calm-purple dark:focus:ring-accent-blue focus:border-transparent transition-all duration-300"
+                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-soft border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-bg text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-calm-purple dark:focus:ring-accent-blue focus:border-transparent transition-all duration-300 text-sm sm:text-base"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className="px-6 py-3 rounded-soft bg-calm-purple dark:bg-accent-blue text-white font-semibold hover:bg-warm-pink dark:hover:bg-accent-blue/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-soft bg-calm-purple dark:bg-accent-blue text-white font-semibold hover:bg-warm-pink dark:hover:bg-accent-blue/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 flex-shrink-0"
+                aria-label="Send message"
               >
-                <FaPaperPlane />
+                <FaPaperPlane className="text-sm sm:text-base" />
                 <span className="hidden sm:inline">Send</span>
               </button>
             </div>
